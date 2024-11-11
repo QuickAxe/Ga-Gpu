@@ -1,12 +1,13 @@
 import random
 import csv
+from math import ceil
 
 # ------------------------------------------------ main parameters -----------------------------------------------------------
 
-POPULATION_SIZE = 3
+POPULATION_SIZE = 5
 # the number of GPUs to include in a single gene
 GENE_SIZE = 3
-GENERATIONS = 50
+GENERATIONS = 30
 MAX_COST = 50000
 MIN_VRAM = 40
 CROSSOVER_RATE = 0.7
@@ -15,7 +16,7 @@ MUTATION_RATE = 0.1
 # a representation for each alele in the gene, or each gpu
 
 
-class GpuAllele():
+class GpuAllele:
     def __init__(self, name, performance, cost, vram):
         self.name = name
         self.performance = performance
@@ -47,7 +48,7 @@ def initPopulation():
     for _ in range(POPULATION_SIZE):
         gene = []
         for _ in range(GENE_SIZE):
-            gene.append(random.sample(gpuList, 1)[0])
+            gene.append(random.choice(gpuList))
         population.append(gene)
     return population
 
@@ -63,11 +64,11 @@ def fitness(gene):
         genevram += gpu.vram
 
     # if this gene doesn't meet the constraints, return a very small fitness value
-    if (geneCost > MAX_COST and genevram < MIN_VRAM):
+    if geneCost > MAX_COST and genevram < MIN_VRAM:
         return 1
 
     # a simple scaling factor
-    return geneFitness + (MAX_COST - geneCost)/15
+    return geneFitness + (MAX_COST - geneCost) / 15
 
 
 def crossover(parent1, parent2):
@@ -111,7 +112,7 @@ if __name__ == "__main__":
             # print("prob genes= ", probGenes)
             expectedCount = probGenes * POPULATION_SIZE
             # print("exp count= ", expectedCount)
-            actualCount = int(expectedCount)
+            actualCount = ceil(expectedCount)
             # print("actual count= ", actualCount)
 
             # add to the next generation
@@ -120,11 +121,11 @@ if __name__ == "__main__":
 
         # find top 50% best genes in the next generation and perform crossover
         nextGen = sorted(nextGen, key=fitness, reverse=True)
-        nextGen = nextGen[:POPULATION_SIZE // 2]
+        nextGen = nextGen[: POPULATION_SIZE // 2]
 
         while len(nextGen) < POPULATION_SIZE:
-            parent1 = random.sample(nextGen, 1)[0]
-            parent2 = random.sample(nextGen, 1)[0]
+            parent1 = random.choice(nextGen)
+            parent2 = random.choice(nextGen)
             nextGen.append(crossover(parent1, parent2))
 
         # perform mutation on all genes with MUTATION_RATE
@@ -140,4 +141,5 @@ if __name__ == "__main__":
     print("The best solution is:")
     for gpu in bestGene:
         print(
-            f"{gpu.name} with performance {gpu.performance}, cost {gpu.cost}, and VRAM {gpu.vram} GB")
+            f"{gpu.name} with performance {gpu.performance}, cost {gpu.cost}, and VRAM {gpu.vram} GB"
+        )
